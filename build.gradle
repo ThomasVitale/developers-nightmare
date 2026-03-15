@@ -1,0 +1,90 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.0.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.vaadin' version '25.0.7'
+    id 'org.cyclonedx.bom' version '3.2.2'
+    id 'org.graalvm.buildtools.native' version '0.11.5'
+}
+
+group = 'com.thomasvitale'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+    set('arconiaVersion', "0.23.1")
+    set('vaadinVersion', "25.0.7")
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    implementation "com.vaadin:vaadin-spring-boot-starter"
+    implementation "org.parttio:line-awesome:2.1.0"
+    implementation 'in.virit:viritin:3.1.2'
+
+    implementation "io.arconia:arconia-opentelemetry-spring-boot-starter"
+    implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
+
+    developmentOnly "com.vaadin:vaadin-dev"
+    developmentOnly "org.springframework.boot:spring-boot-devtools"
+
+    testAndDevelopmentOnly "io.arconia:arconia-dev-services-lgtm"
+    testAndDevelopmentOnly "io.arconia:arconia-dev-services-postgresql"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-actuator-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-data-jdbc-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-flyway-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-validation-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
+        mavenBom "io.arconia:arconia-bom:${arconiaVersion}"
+    }
+}
+
+graalvmNative {
+    binaries {
+        main {
+            buildArgs.addAll(
+                "--enable-monitoring=jfr"
+            )
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add("-parameters")
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+tasks.named('bootBuildImage') {
+    builder = "paketobuildpacks/builder-noble-java-tiny"
+    environment = [
+        "BP_NATIVE_IMAGE_BUILD_ARGUMENTS": "--enable-monitoring=jfr"
+    ]
+}
