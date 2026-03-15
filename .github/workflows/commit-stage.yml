@@ -34,7 +34,7 @@ jobs:
       - name: Compile and test
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
-          command: ./gradlew build
+          command: ./gradlew build --no-daemon
   
   package:
     name: Package
@@ -65,22 +65,34 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ${{ env.REGISTRY }}
 
-      - name: Build, sign, and publish OCI image
+      - name: Build and publish AMD64 OCI image
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
           command: |
-            ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64 --imagePlatform linux/amd64
+            ./gradlew clean bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64 --imagePlatform linux/amd64
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64
-  
-            ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64 --imagePlatform linux/arm64
+
+      - name: Build and publish ARM64 OCI image
+        uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
+        with:
+          command: |
+            ./gradlew clean bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64 --imagePlatform linux/arm64
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64
-        
+
+      - name: Build and publish multi-arch OCI image
+        uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
+        with:
+          command: |
             docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} \
               --amend ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64 \
               --amend ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64
             docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}
-            
-            image_digest=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} | jq -r '.Digest')
+
+      - name: Sign OCI image
+        uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
+        with:
+          command: |
+            image_digest=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} | jq -r ".Digest")
             echo "IMAGE_DIGEST=${image_digest}" >> $GITHUB_ENV
             
             echo "name=${{ env.REGISTRY }}/${{ env.IMAGE }}" >> $GITHUB_OUTPUT 

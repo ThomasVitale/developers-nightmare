@@ -21,6 +21,18 @@ You'll follow the mishaps of a developer and learn how to deal with compliance, 
 * Vaadin
 * Arconia
 
+## Development environment
+
+This project uses [Flox](https://flox.dev/) to manage the development and build environment via [Nix](https://nixos.org). After [installing](https://flox.dev/docs/install-flox/install/) the Flox CLI (open-source), activate the environment:
+
+```shell
+flox activate
+```
+
+Alternatively, ensure you have Java 25 installed.
+
+Either way, you'll need a container runtime like Podman or Docker installed on your machine.
+
 ## Running the application
 
 Run the application.
