@@ -1,6 +1,25 @@
 name: Commit Stage
+
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - '.editorconfig'
+      - '.gitattributes'
+      - '.gitignore'
+      - '.sdkmanrc'
+      - '*.adoc'
+      - '*.png'
+      - '*.md'
+      - '*.txt'
+      - 'catalog-info.yaml'
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/*.md'
+      - '.github/*.yml'
+      - '.github/*.yaml'
+  pull_request:
     branches:
       - main
 
@@ -37,6 +56,7 @@ jobs:
           command: ./gradlew build --no-daemon
   
   package:
+    if: ${{ github.ref == 'refs/heads/main' }}
     name: Package
     runs-on: ubuntu-24.04
     needs: [build]
@@ -64,6 +84,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ${{ env.REGISTRY }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
       - name: Build and publish AMD64 OCI image
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0

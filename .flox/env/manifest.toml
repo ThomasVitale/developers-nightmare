@@ -7,10 +7,8 @@ graalvm-ce.pkg-path = "graalvm-ce"
 graalvm-ce.version = "25"
 httpie.pkg-path = "httpie"
 jq.pkg-path = "jq"
-qemu.pkg-path = "qemu"
 slsa-verifier.pkg-path = "slsa-verifier"
 skopeo.pkg-path = "skopeo"
-zlib.pkg-path = "zlib"
 
 [vars]
 FLOX_DISABLE_METRICS = "true"
@@ -18,9 +16,6 @@ FLOX_DISABLE_METRICS = "true"
 [hook]
 
 [profile]
-common = """
-  export LIBRARY_PATH="$FLOX_ENV/lib${LIBRARY_PATH:+:$LIBRARY_PATH}"
-"""
 
 [services]
 

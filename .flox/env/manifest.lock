@@ -19,26 +19,18 @@
       "jq": {
         "pkg-path": "jq"
       },
-      "qemu": {
-        "pkg-path": "qemu"
-      },
       "skopeo": {
         "pkg-path": "skopeo"
       },
       "slsa-verifier": {
         "pkg-path": "slsa-verifier"
-      },
-      "zlib": {
-        "pkg-path": "zlib"
       }
     },
     "vars": {
       "FLOX_DISABLE_METRICS": "true"
     },
     "hook": {},
-    "profile": {
-      "common": "  export LIBRARY_PATH=\"$FLOX_ENV/lib${LIBRARY_PATH:+:$LIBRARY_PATH}\"\n"
-    },
+    "profile": {},
     "options": {
       "systems": [
         "aarch64-darwin",
@@ -656,129 +648,6 @@
       "priority": 5
     },
     {
-      "attr_path": "qemu",
-      "broken": false,
-      "derivation": "/nix/store/z4qczxrsz0lj6cy3lyia7v9kh3hs55ff-qemu-10.1.0.drv",
-      "description": "Generic and open source machine emulator and virtualizer",
-      "install_id": "qemu",
-      "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "qemu-10.1.0",
-      "pname": "qemu",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T03:41:14.623195Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "10.1.0",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "doc": "/nix/store/5hd62prf3krpfc160rdxag0cx4wm3xkm-qemu-10.1.0-doc",
-        "out": "/nix/store/msqnxb865p09p4m7y4qsq74plwx82qr1-qemu-10.1.0"
-      },
-      "system": "aarch64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "qemu",
-      "broken": false,
-      "derivation": "/nix/store/zwaxbvs3280hj5g7zvrznf1wwbh471cx-qemu-10.1.0.drv",
-      "description": "Generic and open source machine emulator and virtualizer",
-      "install_id": "qemu",
-      "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "qemu-10.1.0",
-      "pname": "qemu",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T04:11:37.689369Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "10.1.0",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "doc": "/nix/store/6sg3svwbj9i5p3687f17dxas0bsywd3s-qemu-10.1.0-doc",
-        "ga": "/nix/store/5c7am0akx4lahwhsahgcyqb0znivcwkh-qemu-10.1.0-ga",
-        "out": "/nix/store/14qh8xd76k2zarfl551bznyj4c9cbajg-qemu-10.1.0"
-      },
-      "system": "aarch64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "qemu",
-      "broken": false,
-      "derivation": "/nix/store/4i7095hny4dj93h823xv70bwfj7fxyz1-qemu-10.1.0.drv",
-      "description": "Generic and open source machine emulator and virtualizer",
-      "install_id": "qemu",
-      "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "qemu-10.1.0",
-      "pname": "qemu",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T04:39:37.707979Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "10.1.0",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "doc": "/nix/store/ybdld8dqkqfv2l0rmpc44v0gj5qgpkhi-qemu-10.1.0-doc",
-        "out": "/nix/store/g45r5gfvpjxj1b3gqz70149a4qsgbxjd-qemu-10.1.0"
-      },
-      "system": "x86_64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "qemu",
-      "broken": false,
-      "derivation": "/nix/store/70ipcm5why8rvk5g8650xnzrgyadvbar-qemu-10.1.0.drv",
-      "description": "Generic and open source machine emulator and virtualizer",
-      "install_id": "qemu",
-      "license": "GPL-2.0-or-later",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "qemu-10.1.0",
-      "pname": "qemu",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T05:11:44.295100Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "10.1.0",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "debug": "/nix/store/8p93sva6rb2xglgsq5k0r5f8nb20997k-qemu-10.1.0-debug",
-        "doc": "/nix/store/5zb27smdm51zs8687zq7p922rc80xwfb-qemu-10.1.0-doc",
-        "ga": "/nix/store/dbjr1q0igmc8vxvafccinq3ivwq26g6h-qemu-10.1.0-ga",
-        "out": "/nix/store/cqii01c005vvf88r555rrh29y40zy35a-qemu-10.1.0"
-      },
-      "system": "x86_64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
       "attr_path": "skopeo",
       "broken": false,
       "derivation": "/nix/store/5pppkipsncf75l7waj8612qgiy14g1nq-skopeo-1.20.0.drv",
@@ -1013,130 +882,6 @@
       ],
       "outputs": {
         "out": "/nix/store/pzdbqi2rck7irdm3y3ly8y4vgf9gy2hg-slsa-verifier-2.7.1"
-      },
-      "system": "x86_64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "zlib",
-      "broken": false,
-      "derivation": "/nix/store/w5ys1mliwikxalr8p9yb3p94nh0v40qj-zlib-1.3.1.drv",
-      "description": "Lossless data-compression library",
-      "install_id": "zlib",
-      "license": "Zlib",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "zlib-1.3.1",
-      "pname": "zlib",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T03:42:28.608357Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.3.1",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "dev": "/nix/store/86xjpgsysygxdhfczssrlj24mi22wxiq-zlib-1.3.1-dev",
-        "out": "/nix/store/5vnba43n1w87cs2i2dd242zy88k4dwf9-zlib-1.3.1",
-        "static": "/nix/store/39mpcp31vw48raa6lj7k2di0ln922bjp-zlib-1.3.1-static"
-      },
-      "system": "aarch64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "zlib",
-      "broken": false,
-      "derivation": "/nix/store/4zph0w9f3rpgmf5xxxfg9i2il8dnfc6m-zlib-1.3.1.drv",
-      "description": "Lossless data-compression library",
-      "install_id": "zlib",
-      "license": "Zlib",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "zlib-1.3.1",
-      "pname": "zlib",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T04:13:13.662234Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.3.1",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "dev": "/nix/store/c7jl10xakizqzj2wv5arnjggwv1vh3r0-zlib-1.3.1-dev",
-        "out": "/nix/store/h5gyhqv452n16izdh86s3rvdq1fcg2pb-zlib-1.3.1",
-        "static": "/nix/store/plix72ay1sq7l91qm97a0ls7haa0hmv8-zlib-1.3.1-static"
-      },
-      "system": "aarch64-linux",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "zlib",
-      "broken": false,
-      "derivation": "/nix/store/j44qdcjln786fivd7llvyyxdxzdnppbi-zlib-1.3.1.drv",
-      "description": "Lossless data-compression library",
-      "install_id": "zlib",
-      "license": "Zlib",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "zlib-1.3.1",
-      "pname": "zlib",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T04:40:46.404088Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.3.1",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "dev": "/nix/store/kw5wnbgivfxif9m2g8i4ks0whdgnh158-zlib-1.3.1-dev",
-        "out": "/nix/store/yy41r1jfz748y6xq4dc54qm4xlravz95-zlib-1.3.1",
-        "static": "/nix/store/l6mprw6il6i4dx78pcnn7as09287f9nh-zlib-1.3.1-static"
-      },
-      "system": "x86_64-darwin",
-      "group": "toplevel",
-      "priority": 5
-    },
-    {
-      "attr_path": "zlib",
-      "broken": false,
-      "derivation": "/nix/store/msipzxnwl7j1hx9vl9lgwkvcjmbdl0gc-zlib-1.3.1.drv",
-      "description": "Lossless data-compression library",
-      "install_id": "zlib",
-      "license": "Zlib",
-      "locked_url": "https://github.com/flox/nixpkgs?rev=5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "name": "zlib-1.3.1",
-      "pname": "zlib",
-      "rev": "5e2a59a5b1a82f89f2c7e598302a9cacebb72a67",
-      "rev_count": 880095,
-      "rev_date": "2025-10-19T12:55:10Z",
-      "scrape_date": "2025-10-21T05:13:17.322945Z",
-      "stabilities": [
-        "unstable"
-      ],
-      "unfree": false,
-      "version": "1.3.1",
-      "outputs_to_install": [
-        "out"
-      ],
-      "outputs": {
-        "dev": "/nix/store/6fqij3sy1mlsnq1n679bzbl5bkqs7yvk-zlib-1.3.1-dev",
-        "out": "/nix/store/6qi8skh85ci2k9gvl27nnh3kiy32qnsz-zlib-1.3.1",
-        "static": "/nix/store/b1l0v5czhw4c410nxvk5lbjfv9r8h7h7-zlib-1.3.1-static"
       },
       "system": "x86_64-linux",
       "group": "toplevel",
