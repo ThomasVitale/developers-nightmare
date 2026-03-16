@@ -1,5 +1,8 @@
 # The Developer’s Nightmare: How To Survive Compliance Checklists (and Still Ship Fast)
 
+![dependencies](https://dependency-track.devex.thomasvitale.dev/api/v1/badge/vulns/project/developers-nightmare/main)
+![policies](https://dependency-track.devex.thomasvitale.dev/api/v1/badge/violations/project/developers-nightmare/main)
+
 You did it! The new feature you’ve been implementing is now ready and you can’t wait to ship it.
 
 “Not so fast”. Oh no, it’s them: the guardians of compliance! You know what’s about to happen. You’ve been there before.
