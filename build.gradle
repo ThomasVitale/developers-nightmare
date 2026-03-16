@@ -38,7 +38,7 @@ dependencies {
 
     implementation "com.vaadin:vaadin-spring-boot-starter"
     implementation "org.parttio:line-awesome:2.1.0"
-    implementation 'in.virit:viritin:3.1.2'
+    implementation 'in.virit:viritin:3.2.0'
 
     implementation "io.arconia:arconia-opentelemetry-spring-boot-starter"
     implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
