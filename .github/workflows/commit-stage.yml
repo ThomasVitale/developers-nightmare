@@ -92,14 +92,14 @@ jobs:
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
           command: |
-            ./gradlew clean bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64 --imagePlatform linux/amd64
+            ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64 --imagePlatform linux/amd64
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-amd64
 
       - name: Build and publish ARM64 OCI image
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
           command: |
-            ./gradlew clean bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64 --imagePlatform linux/arm64
+            ./gradlew bootBuildImage --imageName ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64 --imagePlatform linux/arm64
             docker push ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}-arm64
 
       - name: Build and publish multi-arch OCI image
@@ -115,13 +115,9 @@ jobs:
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
           command: |
-            image_digest=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} | jq -r ".Digest")
-            echo "IMAGE_DIGEST=${image_digest}" >> $GITHUB_ENV
-            
-            echo "name=${{ env.REGISTRY }}/${{ env.IMAGE }}" >> $GITHUB_OUTPUT 
-            echo "digest=${image_digest}" >> $GITHUB_OUTPUT
-            
-            cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE }}@$image_digest
+            echo "IMAGE_DIGEST=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} | jq -r '.Digest')" >> $GITHUB_ENV
+            echo "Signing image: ${{ env.REGISTRY }}/${{ env.IMAGE }}@${{ env.IMAGE_DIGEST }}"
+            cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE }}@${{ env.IMAGE_DIGEST }}
       
       - name: Attest OCI image
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
