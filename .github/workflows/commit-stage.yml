@@ -54,6 +54,17 @@ jobs:
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
           command: task build
+      
+      - name: Publish SBOM
+        uses: DependencyTrack/gh-upload-sbom@48feab3080ff9e8f51f4d21861d9fc914eb744f5 # v3.1.0
+        with:
+          serverHostname: ${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}
+          apiKey: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
+          projectName: ${{ github.event.repository.name }}
+          projectVersion: ${{ github.ref_name }}
+          projectTags: 'java,spring-boot'
+          bomFilename: "build/reports/cyclonedx/application.cdx.json"
+          autoCreate: true
   
   package:
     if: ${{ github.ref == 'refs/heads/main' }}
