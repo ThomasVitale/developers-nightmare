@@ -115,9 +115,10 @@ jobs:
         uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
         with:
           command: |
-            echo "IMAGE_DIGEST=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} | jq -r '.Digest')" >> $GITHUB_ENV
-            echo "Signing image: ${{ env.REGISTRY }}/${{ env.IMAGE }}@${{ env.IMAGE_DIGEST }}"
-            cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE }}@${{ env.IMAGE_DIGEST }}
+            IMAGE_DIGEST=$(skopeo inspect docker://${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} | jq -r '.Digest')
+            echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> $GITHUB_ENV
+            echo "Signing image: ${{ env.REGISTRY }}/${{ env.IMAGE }}@$IMAGE_DIGEST"
+            cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE }}@$IMAGE_DIGEST
       
       - name: Attest OCI image
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26 # v4.1.0
