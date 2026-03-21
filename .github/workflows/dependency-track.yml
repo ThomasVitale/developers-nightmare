@@ -1,0 +1,188 @@
+# .github/workflows/dependency-track.yml
+name: Dependency-Track Policy Check
+
+on:
+  pull_request:
+    branches: [main]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  sbom-policy-check:
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.pull_request != null &&
+        contains(github.event.comment.body, '/recheck-dt')
+      )
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Resolve PR context
+        id: pr
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            if (context.eventName === 'pull_request') {
+              core.setOutput('number', context.payload.pull_request.number);
+              core.setOutput('head_sha', context.payload.pull_request.head.sha);
+            } else {
+              const { data: pr } = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.issue.number,
+              });
+              core.setOutput('number', pr.number);
+              core.setOutput('head_sha', pr.head.sha);
+            }
+
+      - name: Checkout source code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ steps.pr.outputs.head_sha }}
+
+      - name: Install Flox
+        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+
+      - name: Generate SBOM
+        uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
+        with:
+          command: ./gradlew cyclonedxBom
+
+      - name: Upload SBOM to Dependency-Track
+        id: upload
+        run: |
+          RESPONSE=$(curl -s -X POST "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/bom" \
+            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
+            -F "projectName=${{ github.repository }}" \
+            -F "projectVersion=pr-${{ steps.pr.outputs.number }}" \
+            -F "autoCreate=true" \
+            -F "bom=@build/reports/cyclonedx/application.cdx.json")
+          echo "token=$(echo $RESPONSE | jq -r '.token')" >> $GITHUB_OUTPUT
+
+      - name: Wait for BOM processing
+        run: |
+          TOKEN="${{ steps.upload.outputs.token }}"
+          for i in $(seq 1 20); do
+            PROCESSING=$(curl -s "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/event/token/$TOKEN" \
+              -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" | jq -r '.processing')
+            if [ "$PROCESSING" = "false" ]; then
+              echo "BOM processing complete"
+              exit 0
+            fi
+            echo "Still processing... ($i/20)"
+            sleep 10
+          done
+          echo "Timed out waiting for BOM processing" && exit 1
+
+      - name: Check for policy violations
+        id: violations
+        run: |
+          PROJECT_UUID=$(curl -s \
+            "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/project/lookup?name=${{ github.repository }}&version=pr-${{ steps.pr.outputs.number }}" \
+            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" | jq -r '.uuid')
+
+          ALL_VIOLATIONS=$(curl -s \
+            "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/violation/project/$PROJECT_UUID?suppressed=false" \
+            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}")
+
+          FAIL_VIOLATIONS=$(echo "$ALL_VIOLATIONS" | \
+            jq '[.[] | select(.policyCondition.policy.violationState == "FAIL")]')
+
+          COUNT=$(echo "$FAIL_VIOLATIONS" | jq 'length')
+          echo "fail_count=$COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$COUNT" -gt "0" ]; then
+            SUMMARY=$(echo "$FAIL_VIOLATIONS" | jq -r '
+              group_by(.policyCondition.policy.name) |
+              .[] |
+              "### Policy: \(.[0].policyCondition.policy.name)\n" +
+              (
+                .[] |
+                "| \(.type) | \(.component.name) | \(.component.version) | \(.policyCondition.subject) |"
+              )
+            ')
+            EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+            echo "summary<<$EOF" >> $GITHUB_OUTPUT
+            echo "$SUMMARY" >> $GITHUB_OUTPUT
+            echo "$EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Post PR comment
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        if: always()
+        with:
+          script: |
+            const failCount = parseInt('${{ steps.violations.outputs.fail_count }}' || '0');
+            const dtUrl = 'https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}';
+            const repo = '${{ github.repository }}';
+            const prNumber = ${{ steps.pr.outputs.number }};
+            const projectVersion = `pr-${prNumber}`;
+            const projectUrl = `${dtUrl}/projects?name=${encodeURIComponent(repo)}&version=${encodeURIComponent(projectVersion)}`;
+
+            const MARKER = '<!-- dependency-track-policy-check -->';
+
+            let body;
+            if (failCount === 0) {
+              body = [
+                MARKER,
+                '## ✅ Dependency-Track Policy Check',
+                '',
+                'No FAIL-state policy violations found.',
+                '',
+                `[View project in Dependency-Track](${projectUrl})`,
+              ].join('\n');
+            } else {
+              const summary = `${{ steps.violations.outputs.summary }}`;
+              body = [
+                MARKER,
+                '## ❌ Dependency-Track Policy Check',
+                '',
+                `**${failCount} FAIL-state policy violation(s) found.** This PR cannot be merged until they are resolved or suppressed.`,
+                '',
+                '| Type | Component | Version | Condition |',
+                '|------|-----------|---------|-----------|',
+                summary,
+                '',
+                `[View full details in Dependency-Track](${projectUrl})`,
+              ].join('\n');
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const existing = comments.find(c => c.body.includes(MARKER));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+      - name: Fail the check if violations exist
+        if: steps.violations.outputs.fail_count > 0
+        run: |
+          echo "::error::${{ steps.violations.outputs.fail_count }} FAIL-state policy violation(s) found. See the PR comment for details."
+          exit 1

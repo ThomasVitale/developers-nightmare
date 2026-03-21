@@ -36,14 +36,9 @@ dependencies {
 
     runtimeOnly 'org.postgresql:postgresql'
 
-    implementation "com.vaadin:vaadin-spring-boot-starter"
-    implementation "org.parttio:line-awesome:2.1.0"
-    implementation 'in.virit:viritin:3.2.0'
-
     implementation "io.arconia:arconia-opentelemetry-spring-boot-starter"
     implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
 
-    developmentOnly "com.vaadin:vaadin-dev"
     developmentOnly "org.springframework.boot:spring-boot-devtools"
 
     testAndDevelopmentOnly "io.arconia:arconia-dev-services-lgtm"
@@ -59,7 +54,6 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom "com.vaadin:vaadin-bom:${vaadinVersion}"
         mavenBom "io.arconia:arconia-bom:${arconiaVersion}"
     }
 }
