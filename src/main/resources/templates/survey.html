@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Developer's Nightmare — Survey</title>
+    <script th:src="@{/js/tailwindcss-browser.js}"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    <header class="border-b border-amber-200 bg-white">
+        <div class="max-w-3xl mx-auto px-6 py-6">
+            <h1 class="text-3xl font-bold tracking-tight">
+                <span class="text-amber-500">🦆</span> The Developer's Nightmare
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">How To Survive Compliance Checklists (and Still Ship Fast)</p>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-3xl mx-auto w-full px-6 py-10">
+
+        <!-- Success message -->
+        <div th:if="${voted}" class="mb-8 rounded-lg border border-green-300 bg-green-50 p-4">
+            <p class="text-green-700 font-semibold text-lg">🎉 Thanks for voting!</p>
+            <p class="text-green-600 text-sm mt-1">Your voice matters.</p>
+        </div>
+
+        <!-- Survey form -->
+        <div th:unless="${voted}">
+            <div class="mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 leading-snug">
+                    What are your main friction points delivering a feature to production?
+                </h2>
+                <p class="text-sm text-gray-500 mt-2">Select all that apply</p>
+            </div>
+
+            <form th:action="@{/vote}" method="post">
+                <div class="space-y-3">
+                    <label th:each="entry : ${options}"
+                           class="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-white hover:border-amber-400 hover:bg-amber-50 cursor-pointer transition-colors shadow-sm">
+                        <input type="checkbox" th:name="answers" th:value="${entry.key}"
+                               class="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 accent-amber-600">
+                        <span class="text-gray-800" th:text="${entry.value}"></span>
+                    </label>
+                </div>
+
+                <button type="submit"
+                        class="mt-8 w-full rounded-lg bg-amber-500 px-6 py-3 text-sm font-semibold text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 transition-colors shadow">
+                    Submit Vote
+                </button>
+            </form>
+        </div>
+
+    </main>
+
+    <footer class="border-t border-gray-200 py-6">
+        <div class="max-w-3xl mx-auto px-6 text-center text-xs text-gray-400">
+            A demo by Alexandra Hou Aldershaab &amp; Thomas Vitale — Breaking compliance barriers with OSS tools
+        </div>
+    </footer>
+
+</body>
+</html>

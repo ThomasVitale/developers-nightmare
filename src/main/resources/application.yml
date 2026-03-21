@@ -4,14 +4,3 @@ spring:
   threads:
     virtual:
       enabled: true
-
-logging:
-  level:
-    com.vaadin.flow.spring.springnative: warn
-    org.atmosphere: warn
-
-vaadin:
-  launch-browser: true
-  allowed-packages: com.vaadin,org.vaadin,com.flowingcode,com.thomasvitale
-  pnpm:
-    enable: true

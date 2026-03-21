@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Developer's Nightmare — Results</title>
+    <script th:src="@{/js/tailwindcss-browser.js}"></script>
+    <script th:src="@{/js/chart.umd.min.js}"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+    <header class="border-b border-amber-200 bg-white">
+        <div class="max-w-4xl mx-auto px-6 py-6 flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold tracking-tight">
+                    <span class="text-amber-500">🦆</span> The Developer's Nightmare
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">How To Survive Compliance Checklists (and Still Ship Fast)</p>
+            </div>
+            <a th:href="@{/}" class="text-sm text-gray-400 hover:text-gray-600 transition-colors">← Vote</a>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl mx-auto w-full px-6 py-10">
+        <div class="mb-8 flex items-start justify-between gap-6">
+            <h2 class="text-xl font-semibold text-gray-900 leading-snug">
+                What are your main friction points delivering a feature to production?
+            </h2>
+            <div class="flex-shrink-0 text-center">
+                <span id="total-votes" class="block text-5xl font-bold text-amber-500 leading-none">0</span>
+                <span class="text-xs text-gray-400 uppercase tracking-wide">votes</span>
+            </div>
+        </div>
+
+        <div class="relative w-full bg-white rounded-lg shadow-sm border border-gray-200 p-6" style="height: 450px;">
+            <canvas id="resultsChart"></canvas>
+        </div>
+    </main>
+
+    <footer class="border-t border-gray-200 py-6">
+        <div class="max-w-4xl mx-auto px-6 text-center text-xs text-gray-400">
+            A demo by Alexandra Hou Aldershaab &amp; Thomas Vitale — Breaking compliance barriers with OSS tools
+        </div>
+    </footer>
+
+    <script>
+        const totalEl = document.getElementById('total-votes');
+        const ctx = document.getElementById('resultsChart').getContext('2d');
+
+        const barColors = [
+            '#dc2626', '#f97316', '#f59e0b', '#eab308',
+            '#84cc16', '#10b981', '#06b6d4', '#8b5cf6'
+        ];
+
+        const chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [],
+                datasets: [{
+                    data: [],
+                    backgroundColor: barColors,
+                    borderColor: barColors.map(c => c + '40'),
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.7
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 500
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#fff',
+                        titleColor: '#111827',
+                        bodyColor: '#4b5563',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw + ' votes';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#6b7280',
+                            precision: 0
+                        },
+                        grid: {
+                            color: '#f3f4f6'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            color: '#374151',
+                            font: { size: 13 }
+                        },
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        async function fetchResults() {
+            try {
+                const res = await fetch('/api/results');
+                const data = await res.json();
+                updateChart(data);
+            } catch (e) {
+                console.error('Failed to fetch results', e);
+            }
+        }
+
+        function updateChart(data) {
+            totalEl.textContent = data.totalVotes;
+            chart.data.labels = data.results.map(r => r.label);
+            chart.data.datasets[0].data = data.results.map(r => r.count);
+            chart.update();
+        }
+
+        // Initial fetch + poll every 2 seconds
+        fetchResults();
+        setInterval(fetchResults, 2000);
+    </script>
+
+</body>
+</html>
