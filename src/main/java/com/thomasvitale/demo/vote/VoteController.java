@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@RegisterReflectionForBinding(AnswerOption.class)
+@RegisterReflectionForBinding({AnswerOption.class, AnswerCount.class})
 public class VoteController {
 
     static final List<AnswerOption> ANSWER_OPTIONS = List.of(
