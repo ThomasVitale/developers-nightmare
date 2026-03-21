@@ -1,0 +1,35 @@
+name: Promote Application
+on:
+  workflow_dispatch:
+    inputs:
+      source_env:
+        description: 'Source Environment'
+        required: true
+        default: 'staging'
+        type: string
+      target_env:
+        description: 'Target Environment'
+        required: true
+        default: 'devex'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    name: Promote Application
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Request Promotion
+        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
+        with:
+          token: ${{ secrets.DISPATCH_TOKEN }}
+          repository: thomasvitale/kubecon-eu-2026-gitops
+          event-type: app-promotion
+          client-payload: |-
+            {
+              "app_name": "${{ github.event.repository.name }}",
+              "source_env": "${{ inputs.source_env }}",
+              "target_env": "${{ inputs.target_env }}"
+            }

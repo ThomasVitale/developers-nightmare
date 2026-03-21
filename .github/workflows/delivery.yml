@@ -1,0 +1,51 @@
+name: Deliver Application
+on:
+  workflow_call:
+    inputs:
+      target:
+        required: true
+        type: string
+        description: 'The target environment for deployment'
+      registry:
+        required: true
+        type: string
+        description: 'The container registry URL'
+      owner:
+        required: true
+        type: string
+        description: 'The owner of the repositories'
+      app_repo:
+        required: true
+        type: string
+        description: 'The application repository name'
+      deploy_repo:
+        required: true
+        type: string
+        description: 'The deployment repository name'
+      version:
+        required: true
+        type: string
+        description: 'The version/tag of the application to deploy'
+    secrets:
+      dispatch_token:
+        required: true
+        description: 'Token for repository dispatch'
+
+jobs:
+  deliver:
+    name: Deliver release candidate
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Deliver application
+        uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # v3.0.0
+        with:
+          token: ${{ secrets.dispatch_token }}
+          repository: ${{ inputs.owner }}/${{ inputs.deploy_repo }}
+          event-type: app-delivery
+          client-payload: |-
+            {
+              "app_target": "${{ inputs.target }}",
+              "app_image": "${{ inputs.registry }}/${{ inputs.owner }}/${{ inputs.app_repo }}",
+              "app_name": "${{ inputs.app_repo }}",
+              "app_version": "${{ inputs.version }}"
+            }
