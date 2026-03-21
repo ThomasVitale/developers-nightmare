@@ -16,7 +16,4 @@ public interface VoteRepository extends ListCrudRepository<Vote, UUID> {
     """)
     List<AnswerCount> countByAnswer();
 
-    record AnswerCount(int answerNumber, long voteCount) {
-    }
-
 }
