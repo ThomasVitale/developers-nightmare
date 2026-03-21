@@ -63,8 +63,7 @@ public class VoteController {
     }
 
     @GetMapping("/results")
-    public String results(Model model) {
-        model.addAttribute("options", ANSWER_OPTIONS);
+    public String results() {
         return "results";
     }
 

@@ -9,7 +9,7 @@ import org.springframework.data.repository.ListCrudRepository;
 public interface VoteRepository extends ListCrudRepository<Vote, UUID> {
 
     @Query("""
-        SELECT answer_number, COUNT(*) AS vote_count
+        SELECT answer_number::int, COUNT(*) AS vote_count
         FROM vote, unnest(string_to_array(answers, ',')) AS answer_number
         GROUP BY answer_number
         ORDER BY answer_number
