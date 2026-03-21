@@ -33,9 +33,11 @@ public class VoteController {
     );
 
     private final VoteRepository voteRepository;
+    private final VoteService voteService;
 
-    public VoteController(VoteRepository voteRepository) {
+    public VoteController(VoteRepository voteRepository, VoteService voteService) {
         this.voteRepository = voteRepository;
+        this.voteService = voteService;
     }
 
     @GetMapping("/")
@@ -69,7 +71,7 @@ public class VoteController {
     @ResponseBody
     public Map<String, Object> getResults() {
         Map<Integer, Long> counts = new HashMap<>();
-        for (var ac : voteRepository.countByAnswer()) {
+        for (var ac : voteService.countByAnswer()) {
             counts.put(ac.answerNumber(), ac.voteCount());
         }
 
