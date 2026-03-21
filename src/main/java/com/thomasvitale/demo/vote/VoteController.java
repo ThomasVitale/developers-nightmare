@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,23 +17,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
-@RegisterReflectionForBinding(Map.Entry.class)
 public class VoteController {
 
-    static final Map<Integer, String> ANSWER_OPTIONS;
-
-    static {
-        var options = new LinkedHashMap<Integer, String>();
-        options.put(1, "License approval delays");
-        options.put(2, "False positive CVEs blocking releases");
-        options.put(3, "Slow manual approval processes");
-        options.put(4, "Lack of automation in compliance checks");
-        options.put(5, "Dependency management chaos");
-        options.put(6, "Supply chain security doubts");
-        options.put(7, "Platform/operation team bottlenecks");
-        options.put(8, "Other");
-        ANSWER_OPTIONS = options;
-    }
+    static final List<AnswerOption> ANSWER_OPTIONS = List.of(
+        new AnswerOption(1, "License approval delays"),
+        new AnswerOption(2, "False positive CVEs blocking releases"),
+        new AnswerOption(3, "Slow manual approval processes"),
+        new AnswerOption(4, "Lack of automation in compliance checks"),
+        new AnswerOption(5, "Dependency management chaos"),
+        new AnswerOption(6, "Supply chain security doubts"),
+        new AnswerOption(7, "Platform/operation team bottlenecks"),
+        new AnswerOption(8, "Other")
+    );
 
     private final VoteRepository voteRepository;
 
@@ -80,11 +74,11 @@ public class VoteController {
         long totalVotes = voteRepository.count();
 
         List<Map<String, Object>> results = new ArrayList<>();
-        for (var entry : ANSWER_OPTIONS.entrySet()) {
+        for (var option : ANSWER_OPTIONS) {
             Map<String, Object> item = new LinkedHashMap<>();
-            item.put("id", entry.getKey());
-            item.put("label", entry.getValue());
-            item.put("count", counts.getOrDefault(entry.getKey(), 0L));
+            item.put("id", option.id());
+            item.put("label", option.label());
+            item.put("count", counts.getOrDefault(option.id(), 0L));
             results.add(item);
         }
 

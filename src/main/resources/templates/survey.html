@@ -36,11 +36,11 @@
 
             <form th:action="@{/vote}" method="post">
                 <div class="space-y-3">
-                    <label th:each="entry : ${options}"
+                    <label th:each="option : ${options}"
                            class="flex items-start gap-3 p-4 rounded-lg border border-gray-200 bg-white hover:border-amber-400 hover:bg-amber-50 cursor-pointer transition-colors shadow-sm">
-                        <input type="checkbox" th:name="answers" th:value="${entry.key}"
+                        <input type="checkbox" th:name="answers" th:value="${option.id}"
                                class="mt-0.5 h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500 accent-amber-600">
-                        <span class="text-gray-800" th:text="${entry.value}"></span>
+                        <span class="text-gray-800" th:text="${option.label}"></span>
                     </label>
                 </div>
 
