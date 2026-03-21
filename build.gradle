@@ -20,7 +20,7 @@ repositories {
 }
 
 ext {
-    set('arconiaVersion', "0.23.1")
+    set('arconiaVersion', "0.24.0")
 }
 
 dependencies {
