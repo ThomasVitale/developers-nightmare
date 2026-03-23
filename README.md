@@ -3,19 +3,19 @@
 ![dependencies](https://dependency-track.devex.thomasvitale.dev/api/v1/badge/vulns/project/developers-nightmare/main)
 ![policies](https://dependency-track.devex.thomasvitale.dev/api/v1/badge/violations/project/developers-nightmare/main)
 
-You did it! The new feature you’ve been implementing is now ready and you can’t wait to ship it.
+You did it! The new feature you’ve been implementing is now ready, and you can’t wait to ship it.
 
-“Not so fast”. Oh no, it’s them: the guardians of compliance! You know what’s about to happen. You’ve been there before.
+“Not so fast”... Oh no, it’s them: the guardians of compliance! You know what’s about to happen. You’ve been there before.
 
 - Are you using any license that is not approved?
 - Is there any CVE reported for the new dependencies you added?
 - Can you guarantee the artifact running in production has not been tampered with?
 
-Several checklists, paperwork, and meetings later, you’re finally approved for release. Not fun. Where did the developer joy go?
+Several checklists, paperwork, and meetings later, you’re finally approved for release. Not fun... Where did the developer joy go?
 
-In this session, Alexandra and Thomas explore how to break the compliance barriers for developers, even in highly-regulated industries. The goal is to enhance the developer experience while letting the platform automate and enforce compliance and security checks.
+In this session, Alexandra and Thomas explore how to break the compliance barriers for developers, even in highly regulated industries. The goal is to enhance the developer experience while letting the platform automate and enforce compliance and security checks.
 
-You'll follow the mishaps of a developer and learn how to deal with compliance, using practical solutions based on OSS tools like Backstage, Dependency-Track, Sigstore and Buildpacks.
+You'll follow the mishaps of a developer and learn how to deal with compliance, using practical solutions based on OSS tools like Backstage, Dependency-Track, Sigstore, and Buildpacks.
 
 ## Stack
 
@@ -50,7 +50,7 @@ Alternatively, you can use the [Arconia CLI](https://docs.arconia.io/arconia-cli
 arconia dev
 ```
 
-Under the hood, the Arconia framework will automatically spin up the needed backing services using [Arconia Dev Services](https://arconia.io/docs/arconia/latest/dev-services/) and Testcontainers:
+Under the hood, the Arconia framework will automatically spin up the necessary backing services using [Arconia Dev Services](https://arconia.io/docs/arconia/latest/dev-services/) and Testcontainers:
 
 * [Grafana LGTM](https://arconia.io/docs/arconia/latest/dev-services/lgtm/) OpenTelemetry-based observability platform
 * [PostgreSQL](https://arconia.io/docs/arconia/latest/dev-services/postgresql/) database.
