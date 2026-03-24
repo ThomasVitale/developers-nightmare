@@ -29,7 +29,8 @@ public class VoteController {
         new AnswerOption(5, "Dependency management chaos"),
         new AnswerOption(6, "Supply chain security doubts"),
         new AnswerOption(7, "Platform/operation team bottlenecks"),
-        new AnswerOption(8, "Other")
+        new AnswerOption(8, "Ducks, ducks, go quack"),
+        new AnswerOption(9, "Other")
     );
 
     private final VoteRepository voteRepository;
