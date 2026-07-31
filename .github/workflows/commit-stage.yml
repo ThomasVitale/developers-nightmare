@@ -45,7 +45,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Flox
-        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+        uses: flox/install-flox-action@1128abd73431089ab9d871c893b4e72a729354e1 # v2.6.0
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
@@ -81,7 +81,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Flox
-        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+        uses: flox/install-flox-action@1128abd73431089ab9d871c893b4e72a729354e1 # v2.6.0
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
@@ -113,7 +113,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Flox
-        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+        uses: flox/install-flox-action@1128abd73431089ab9d871c893b4e72a729354e1 # v2.6.0
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
@@ -148,7 +148,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install Flox
-        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+        uses: flox/install-flox-action@1128abd73431089ab9d871c893b4e72a729354e1 # v2.6.0
 
       - name: Login to Docker
         uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4.0.0
