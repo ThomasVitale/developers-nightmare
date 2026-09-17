@@ -54,7 +54,7 @@ jobs:
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Generate SBOM
-        uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
+        uses: flox/activate-action@b1009911305dd59074b15f55300b18321d2ea6a8 # v1.2.0
         with:
           command: ./gradlew cyclonedxBom
 
