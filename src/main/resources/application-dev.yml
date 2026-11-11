@@ -3,9 +3,3 @@ management:
     web:
       exposure:
         include: "*"
-
-arconia:
-  otel:
-    metrics:
-      exporter:
-        interval: 5s
