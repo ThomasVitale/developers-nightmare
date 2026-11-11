@@ -26,10 +26,10 @@ You'll follow the mishaps of a developer and learn how to deal with compliance, 
 
 ## Development environment
 
-This project uses [Flox](https://flox.dev/) to manage the development and build environment via [Nix](https://nixos.org). After [installing](https://flox.dev/docs/install-flox/install/) the Flox CLI (open-source), activate the environment:
+This project uses [devenv](https://devenv.sh) to manage the development and build environment via [Nix](https://nixos.org). After [installing](https://devenv.sh/getting-started/) devenv, activate the environment:
 
 ```shell
-flox activate
+devenv shell
 ```
 
 Alternatively, ensure you have Java 25 installed.

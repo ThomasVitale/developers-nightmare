@@ -47,16 +47,33 @@ jobs:
         with:
           ref: ${{ steps.pr.outputs.head_sha }}
 
-      - name: Install Flox
-        uses: flox/install-flox-action@9428713e8d3883274c334b4b95b8830beebd24d2 # v2.3.0
+      - name: Install Nix
+        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
+
+      - name: Set up Cachix
+        uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: devenv
+
+      - name: Install devenv
+        run: nix profile add nixpkgs#devenv
+
+      - name: Build devenv shell
+        run: devenv test
+
+      - name: Export devenv toolchain
+        shell: devenv shell bash -- -e {0}
+        run: |
+          set -euo pipefail
+          echo "JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+          echo "$JAVA_HOME/bin" >> "$GITHUB_PATH"
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
 
       - name: Generate SBOM
-        uses: flox/activate-action@410568008895a0f2e09a34bbd9523f8ef1f2d292 # v1.1.0
-        with:
-          command: ./gradlew cyclonedxBom
+        shell: devenv shell bash -- -e {0}
+        run: ./gradlew cyclonedxBom
 
       - name: Upload SBOM to Dependency-Track
         id: upload
