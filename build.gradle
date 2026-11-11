@@ -38,6 +38,10 @@ dependencies {
     implementation "io.arconia:arconia-opentelemetry-spring-boot-starter"
     implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
 
+    implementation 'org.webjars:webjars-locator-lite'
+    implementation 'org.webjars.npm:chart.js:4.6.1'
+    implementation 'org.webjars.npm:tailwindcss__browser:4.3.4'
+
     developmentOnly "org.springframework.boot:spring-boot-devtools"
 
     testAndDevelopmentOnly "io.arconia:arconia-dev-services-lgtm"
