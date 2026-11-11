@@ -31,21 +31,32 @@ on:
         required: true
         description: 'Token for repository dispatch'
 
+permissions:
+  contents: read
+
 jobs:
   deliver:
     name: Deliver release candidate
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Deliver application
-        uses: peter-evans/repository-dispatch@28959ce8df70de7be546dd1250a005dd32156697 # v4.0.1
-        with:
-          token: ${{ secrets.dispatch_token }}
-          repository: ${{ inputs.owner }}/${{ inputs.deploy_repo }}
-          event-type: app-delivery
-          client-payload: |-
-            {
-              "app_target": "${{ inputs.target }}",
-              "app_image": "${{ inputs.registry }}/${{ inputs.owner }}/${{ inputs.app_repo }}",
-              "app_name": "${{ inputs.app_repo }}",
-              "app_version": "${{ inputs.version }}"
-            }
+        env:
+          GH_TOKEN: ${{ secrets.dispatch_token }}
+          TARGET: ${{ inputs.target }}
+          REGISTRY: ${{ inputs.registry }}
+          OWNER: ${{ inputs.owner }}
+          APP_REPO: ${{ inputs.app_repo }}
+          DEPLOY_REPO: ${{ inputs.deploy_repo }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          jq -n \
+            --arg app_target "${TARGET}" \
+            --arg app_image "${REGISTRY}/${OWNER}/${APP_REPO}" \
+            --arg app_name "${APP_REPO}" \
+            --arg app_version "${VERSION}" \
+            '{event_type: "app-delivery", client_payload: {app_target: $app_target, app_image: $app_image, app_name: $app_name, app_version: $app_version}}' \
+            | gh api --method POST "repos/${OWNER}/${DEPLOY_REPO}/dispatches" --input -

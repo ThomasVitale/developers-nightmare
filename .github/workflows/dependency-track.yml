@@ -10,50 +10,62 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: dependency-track-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
 jobs:
-  sbom-policy-check:
-    runs-on: ubuntu-latest
+  # Runs the pull request code, so it gets no secrets and a read-only token.
+  sbom:
+    name: Generate SBOM
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
     if: |
       github.event_name == 'pull_request' ||
       (
         github.event_name == 'issue_comment' &&
         github.event.issue.pull_request != null &&
-        contains(github.event.comment.body, '/recheck-dt')
+        startsWith(github.event.comment.body, '/recheck-dt') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
       )
     permissions:
-      pull-requests: write
-
+      contents: read
+      pull-requests: read
+    outputs:
+      number: ${{ steps.pr.outputs.number }}
     steps:
       - name: Resolve PR context
         id: pr
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
-        with:
-          script: |
-            if (context.eventName === 'pull_request') {
-              core.setOutput('number', context.payload.pull_request.number);
-              core.setOutput('head_sha', context.payload.pull_request.head.sha);
-            } else {
-              const { data: pr } = await github.rest.pulls.get({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.issue.number,
-              });
-              core.setOutput('number', pr.number);
-              core.setOutput('head_sha', pr.head.sha);
-            }
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            number="${PR_NUMBER}"
+            head_sha="${PR_HEAD_SHA}"
+          else
+            number="${ISSUE_NUMBER}"
+            head_sha=$(gh pr view "${number}" --repo "${GITHUB_REPOSITORY}" --json headRefOid --jq '.headRefOid')
+          fi
+          echo "number=${number}" >> "$GITHUB_OUTPUT"
+          echo "head_sha=${head_sha}" >> "$GITHUB_OUTPUT"
 
-      - name: Checkout source code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Check out source code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ steps.pr.outputs.head_sha }}
+          persist-credentials: false
 
       - name: Install Nix
-        uses: cachix/install-nix-action@75c75c31ebece974e48ebc36b4ad125bd97bd97b # v31.11.3
-
-      - name: Set up Cachix
-        uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        uses: cachix/install-nix-action@91f6a0f59e94dfb2cfed0f4000f36a68ead1d20c # v31.11.4
         with:
-          name: devenv
+          extra_nix_config: |
+            extra-substituters = https://devenv.cachix.org
+            extra-trusted-public-keys = devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=
 
       - name: Install devenv
         run: nix profile add nixpkgs#devenv
@@ -69,34 +81,65 @@ jobs:
           echo "$JAVA_HOME/bin" >> "$GITHUB_PATH"
 
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          cache-read-only: true
 
       - name: Generate SBOM
         shell: devenv shell bash -- -e {0}
         run: ./gradlew cyclonedxBom
 
+      - name: Upload SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: build/reports/cyclonedx/application.cdx.json
+          retention-days: 1
+
+  # Handles secrets and write access, but never executes code from the pull request.
+  policy-check:
+    name: Policy Check
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    needs: [sbom]
+    permissions:
+      pull-requests: write
+    env:
+      DEPENDENCY_TRACK_HOSTNAME: ${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}
+      DEPENDENCY_TRACK_API_KEY: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
+      PR_NUMBER: ${{ needs.sbom.outputs.number }}
+    steps:
+      - name: Download SBOM
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sbom
+          path: sbom
+
       - name: Upload SBOM to Dependency-Track
         id: upload
         run: |
-          RESPONSE=$(curl -s -X POST "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/bom" \
-            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" \
-            -F "projectName=${{ github.repository }}" \
-            -F "projectVersion=pr-${{ steps.pr.outputs.number }}" \
+          set -euo pipefail
+          RESPONSE=$(curl -sS --fail-with-body -X POST "https://${DEPENDENCY_TRACK_HOSTNAME}/api/v1/bom" \
+            -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" \
+            -F "projectName=${GITHUB_REPOSITORY}" \
+            -F "projectVersion=pr-${PR_NUMBER}" \
             -F "autoCreate=true" \
-            -F "bom=@build/reports/cyclonedx/application.cdx.json")
-          echo "token=$(echo $RESPONSE | jq -r '.token')" >> $GITHUB_OUTPUT
+            -F "bom=@sbom/application.cdx.json")
+          echo "token=$(echo "${RESPONSE}" | jq -r '.token')" >> "$GITHUB_OUTPUT"
 
       - name: Wait for BOM processing
+        env:
+          TOKEN: ${{ steps.upload.outputs.token }}
         run: |
-          TOKEN="${{ steps.upload.outputs.token }}"
+          set -euo pipefail
           for i in $(seq 1 20); do
-            PROCESSING=$(curl -s "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/event/token/$TOKEN" \
-              -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" | jq -r '.processing')
-            if [ "$PROCESSING" = "false" ]; then
+            PROCESSING=$(curl -sS --fail-with-body "https://${DEPENDENCY_TRACK_HOSTNAME}/api/v1/event/token/${TOKEN}" \
+              -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" | jq -r '.processing')
+            if [ "${PROCESSING}" = "false" ]; then
               echo "BOM processing complete"
               exit 0
             fi
-            echo "Still processing... ($i/20)"
+            echo "Still processing... (${i}/20)"
             sleep 10
           done
           echo "Timed out waiting for BOM processing" && exit 1
@@ -104,22 +147,25 @@ jobs:
       - name: Check for policy violations
         id: violations
         run: |
-          PROJECT_UUID=$(curl -s \
-            "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/project/lookup?name=${{ github.repository }}&version=pr-${{ steps.pr.outputs.number }}" \
-            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}" | jq -r '.uuid')
+          set -euo pipefail
+          PROJECT_UUID=$(curl -sS --fail-with-body --get "https://${DEPENDENCY_TRACK_HOSTNAME}/api/v1/project/lookup" \
+            --data-urlencode "name=${GITHUB_REPOSITORY}" \
+            --data-urlencode "version=pr-${PR_NUMBER}" \
+            -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" | jq -r '.uuid')
 
-          ALL_VIOLATIONS=$(curl -s \
-            "https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}/api/v1/violation/project/$PROJECT_UUID?suppressed=false" \
-            -H "X-Api-Key: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}")
+          ALL_VIOLATIONS=$(curl -sS --fail-with-body \
+            "https://${DEPENDENCY_TRACK_HOSTNAME}/api/v1/violation/project/${PROJECT_UUID}?suppressed=false" \
+            -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}")
 
-          FAIL_VIOLATIONS=$(echo "$ALL_VIOLATIONS" | \
+          FAIL_VIOLATIONS=$(echo "${ALL_VIOLATIONS}" | \
             jq '[.[] | select(.policyCondition.policy.violationState == "FAIL")]')
 
-          COUNT=$(echo "$FAIL_VIOLATIONS" | jq 'length')
-          echo "fail_count=$COUNT" >> $GITHUB_OUTPUT
+          COUNT=$(echo "${FAIL_VIOLATIONS}" | jq 'length')
+          echo "fail_count=${COUNT}" >> "$GITHUB_OUTPUT"
+          echo "project_uuid=${PROJECT_UUID}" >> "$GITHUB_OUTPUT"
 
-          if [ "$COUNT" -gt "0" ]; then
-            SUMMARY=$(echo "$FAIL_VIOLATIONS" | jq -r '
+          if [ "${COUNT}" -gt "0" ]; then
+            SUMMARY=$(echo "${FAIL_VIOLATIONS}" | jq -r '
               group_by(.policyCondition.policy.name) |
               .[] |
               "### Policy: \(.[0].policyCondition.policy.name)\n" +
@@ -129,77 +175,58 @@ jobs:
               )
             ')
             EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-            echo "summary<<$EOF" >> $GITHUB_OUTPUT
-            echo "$SUMMARY" >> $GITHUB_OUTPUT
-            echo "$EOF" >> $GITHUB_OUTPUT
+            echo "summary<<${EOF}" >> "$GITHUB_OUTPUT"
+            echo "${SUMMARY}" >> "$GITHUB_OUTPUT"
+            echo "${EOF}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Post PR comment
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
-        if: always()
-        with:
-          script: |
-            const failCount = parseInt('${{ steps.violations.outputs.fail_count }}' || '0');
-            const dtUrl = 'https://${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}';
-            const repo = '${{ github.repository }}';
-            const prNumber = ${{ steps.pr.outputs.number }};
-            const projectVersion = `pr-${prNumber}`;
-            const projectUrl = `${dtUrl}/projects?name=${encodeURIComponent(repo)}&version=${encodeURIComponent(projectVersion)}`;
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAIL_COUNT: ${{ steps.violations.outputs.fail_count }}
+          SUMMARY: ${{ steps.violations.outputs.summary }}
+        run: |
+          set -euo pipefail
+          MARKER='<!-- dependency-track-policy-check -->'
+          PROJECT_URL="https://${DEPENDENCY_TRACK_HOSTNAME}/projects?name=$(jq -rn --arg v "${GITHUB_REPOSITORY}" '$v|@uri')&version=pr-${PR_NUMBER}"
 
-            const MARKER = '<!-- dependency-track-policy-check -->';
+          if [ "${FAIL_COUNT}" -eq 0 ]; then
+            cat > comment.md <<EOF
+          ${MARKER}
+          ## ✅ Dependency-Track Policy Check
 
-            let body;
-            if (failCount === 0) {
-              body = [
-                MARKER,
-                '## ✅ Dependency-Track Policy Check',
-                '',
-                'No FAIL-state policy violations found.',
-                '',
-                `[View project in Dependency-Track](${projectUrl})`,
-              ].join('\n');
-            } else {
-              const summary = `${{ steps.violations.outputs.summary }}`;
-              body = [
-                MARKER,
-                '## ❌ Dependency-Track Policy Check',
-                '',
-                `**${failCount} FAIL-state policy violation(s) found.** This PR cannot be merged until they are resolved or suppressed.`,
-                '',
-                '| Type | Component | Version | Condition |',
-                '|------|-----------|---------|-----------|',
-                summary,
-                '',
-                `[View full details in Dependency-Track](${projectUrl})`,
-              ].join('\n');
-            }
+          No FAIL-state policy violations found.
 
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-            });
+          [View project in Dependency-Track](${PROJECT_URL})
+          EOF
+          else
+            cat > comment.md <<EOF
+          ${MARKER}
+          ## ❌ Dependency-Track Policy Check
 
-            const existing = comments.find(c => c.body.includes(MARKER));
+          **${FAIL_COUNT} FAIL-state policy violation(s) found.** This PR cannot be merged until they are resolved or suppressed.
 
-            if (existing) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: existing.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: prNumber,
-                body,
-              });
-            }
+          | Type | Component | Version | Condition |
+          |------|-----------|---------|-----------|
+          ${SUMMARY}
+
+          [View full details in Dependency-Track](${PROJECT_URL})
+          EOF
+          fi
+
+          COMMENT_ID=$(gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" | head -n1)
+
+          if [ -n "${COMMENT_ID}" ]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${COMMENT_ID}" -F body=@comment.md > /dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" -F body=@comment.md > /dev/null
+          fi
 
       - name: Fail the check if violations exist
-        if: steps.violations.outputs.fail_count > 0
+        if: ${{ steps.violations.outputs.fail_count > 0 }}
+        env:
+          FAIL_COUNT: ${{ steps.violations.outputs.fail_count }}
         run: |
-          echo "::error::${{ steps.violations.outputs.fail_count }} FAIL-state policy violation(s) found. See the PR comment for details."
+          echo "::error::${FAIL_COUNT} FAIL-state policy violation(s) found. See the PR comment for details."
           exit 1

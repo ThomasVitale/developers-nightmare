@@ -10,19 +10,36 @@ permissions:
   contents: read
 
 jobs:
+  # Only continue for successful Commit Stage runs triggered by a push to main in this repository,
+  # not for failed runs or pull requests (including forks whose branch happens to be named main).
+  check:
+    name: Check Commit Stage
+    runs-on: ubuntu-26.04
+    timeout-minutes: 5
+    if: |
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    steps:
+      - run: echo "Commit Stage succeeded for ${HEAD_SHA}"
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
   functional:
+    needs: [check]
     name: Functional Acceptance Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - run: echo "Running functional acceptance tests"
   performance:
+    needs: [check]
     name: Performance Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - run: echo "Running performance tests"
   security:
+    needs: [check]
     name: Security Tests
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - run: echo "Running security tests"
   deliver:
@@ -35,6 +52,6 @@ jobs:
       deploy_repo: 'kubecon-eu-2026-gitops'
       registry: 'ghcr.io'
       app_repo: developers-nightmare
-      version: ${{ github.sha }}
+      version: ${{ github.event.workflow_run.head_sha }}
     secrets:
       dispatch_token: ${{ secrets.DISPATCH_TOKEN }}
