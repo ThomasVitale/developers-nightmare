@@ -5,12 +5,12 @@ on:
       source_env:
         description: 'Source Environment'
         required: true
-        default: 'staging'
+        default: 'cloud'
         type: string
       target_env:
         description: 'Target Environment'
         required: true
-        default: 'devex'
+        default: 'prod'
         type: string
 
 permissions:

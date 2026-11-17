@@ -62,10 +62,6 @@ jobs:
 
       - name: Install Nix
         uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
-        with:
-          extra_nix_config: |
-            extra-substituters = https://devenv.cachix.org
-            extra-trusted-public-keys = devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw=
 
       - name: Install devenv
         run: nix profile add nixpkgs#devenv
