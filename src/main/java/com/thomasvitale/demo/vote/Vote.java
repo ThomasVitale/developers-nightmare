@@ -3,10 +3,11 @@ package com.thomasvitale.demo.vote;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.Id;
 
 record Vote(
-    @Id UUID id,
+    @Id @Nullable UUID id,
     String answers,
     Instant createdAt
 ) {

@@ -5,8 +5,12 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,6 +24,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 @RegisterReflectionForBinding({AnswerOption.class, AnswerCount.class})
 class VoteController {
+
+    private static final Logger logger = LoggerFactory.getLogger(VoteController.class);
 
     static final List<AnswerOption> ANSWER_OPTIONS = List.of(
         new AnswerOption(1, "License approval delays"),
@@ -42,23 +48,28 @@ class VoteController {
     }
 
     @GetMapping("/")
-    String survey(@RequestParam(required = false) String voted, Model model) {
+    String survey(@RequestParam(required = false) @Nullable String voted, Model model) {
         model.addAttribute("options", ANSWER_OPTIONS);
         model.addAttribute("voted", voted != null);
         return "survey";
     }
 
     @PostMapping("/vote")
-    String vote(@RequestParam(required = false) List<Integer> answers) {
+    String vote(@RequestParam(required = false) @Nullable List<@Nullable Integer> answers) {
         if (answers == null || answers.isEmpty()) {
+            logger.warn("Vote submitted with no answers");
             return "redirect:/";
         }
         String answersStr = answers.stream()
+                .filter(Objects::nonNull)
                 .filter(a -> a >= 1 && a <= ANSWER_OPTIONS.size())
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
         if (!answersStr.isEmpty()) {
             voteRepository.save(new Vote(answersStr));
+            logger.info("Vote recorded: answers={}", answersStr);
+        } else {
+            logger.warn("Vote rejected: invalid answers={}", answers);
         }
         return "redirect:/?voted=true";
     }
@@ -90,6 +101,7 @@ class VoteController {
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("results", results);
         response.put("totalVotes", totalVotes);
+        logger.info("Results retrieved: totalVotes={}", totalVotes);
         return response;
     }
 
@@ -97,6 +109,7 @@ class VoteController {
     @ResponseBody
     ResponseEntity<Void> clearVotes() {
         voteRepository.deleteAll();
+        logger.warn("All votes cleared");
         return ResponseEntity.noContent().build();
     }
 
