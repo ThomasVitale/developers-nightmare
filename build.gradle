@@ -37,7 +37,8 @@ dependencies {
 
     runtimeOnly 'org.postgresql:postgresql'
 
-    implementation "io.arconia:arconia-opentelemetry-spring-boot-starter"
+    implementation 'io.arconia:arconia-opentelemetry-spring-boot-starter'
+    implementation 'io.arconia:arconia-opentelemetry-semantic-conventions'
     implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
 
     implementation 'org.webjars:webjars-locator-lite'
