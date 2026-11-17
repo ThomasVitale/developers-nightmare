@@ -81,7 +81,8 @@ tasks.named('test') {
 }
 
 tasks.named('bootBuildImage') {
-    builder = "paketobuildpacks/builder-noble-java-tiny"
+    builder = "paketobuildpacks/ubuntu-resolute-builder"
+    runImage = "docker.io/paketobuildpacks/ubuntu-resolute-run-tiny"
     environment = [
         "BP_NATIVE_IMAGE_BUILD_ARGUMENTS": "--enable-monitoring=jfr"
     ]

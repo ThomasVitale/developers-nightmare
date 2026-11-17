@@ -62,7 +62,7 @@ The application will be accessible at http://localhost:8080.
 The application logs will show you the URL where you can access the Grafana observability platform.
 
 ```logs
-...o.t.grafana.LgtmStackContainer: Access to the Grafana dashboard: http://localhost:<port>
+...Dev Service 'lgtm' links: Grafana: http://localhost:<port>
 ```
 
 By default, logs, metrics, and traces are exported via OTLP using the HTTP/Protobuf format.

@@ -1,4 +1,3 @@
 package com.thomasvitale.demo.vote;
 
-public record AnswerCount(int answerNumber, long voteCount) {
-}
+record AnswerCount(int answerNumber, long voteCount) {}

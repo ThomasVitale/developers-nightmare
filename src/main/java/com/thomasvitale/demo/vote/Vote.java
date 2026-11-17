@@ -5,7 +5,7 @@ import java.util.UUID;
 
 import org.springframework.data.annotation.Id;
 
-public record Vote(
+record Vote(
     @Id UUID id,
     String answers,
     Instant createdAt

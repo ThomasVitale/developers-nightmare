@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 
 @Service
-public class VoteService {
+class VoteService {
 
     private final JdbcClient jdbcClient;
 

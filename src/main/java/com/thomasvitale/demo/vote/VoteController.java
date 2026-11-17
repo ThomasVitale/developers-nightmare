@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 @RegisterReflectionForBinding({AnswerOption.class, AnswerCount.class})
-public class VoteController {
+class VoteController {
 
     static final List<AnswerOption> ANSWER_OPTIONS = List.of(
         new AnswerOption(1, "License approval delays"),
@@ -36,20 +36,20 @@ public class VoteController {
     private final VoteRepository voteRepository;
     private final VoteService voteService;
 
-    public VoteController(VoteRepository voteRepository, VoteService voteService) {
+    VoteController(VoteRepository voteRepository, VoteService voteService) {
         this.voteRepository = voteRepository;
         this.voteService = voteService;
     }
 
     @GetMapping("/")
-    public String survey(@RequestParam(required = false) String voted, Model model) {
+    String survey(@RequestParam(required = false) String voted, Model model) {
         model.addAttribute("options", ANSWER_OPTIONS);
         model.addAttribute("voted", voted != null);
         return "survey";
     }
 
     @PostMapping("/vote")
-    public String vote(@RequestParam(required = false) List<Integer> answers) {
+    String vote(@RequestParam(required = false) List<Integer> answers) {
         if (answers == null || answers.isEmpty()) {
             return "redirect:/";
         }
@@ -64,13 +64,13 @@ public class VoteController {
     }
 
     @GetMapping("/results")
-    public String results() {
+    String results() {
         return "results";
     }
 
     @GetMapping("/api/results")
     @ResponseBody
-    public Map<String, Object> getResults() {
+    Map<String, Object> getResults() {
         Map<Integer, Long> counts = new HashMap<>();
         for (var ac : voteService.countByAnswer()) {
             counts.put(ac.answerNumber(), ac.voteCount());
@@ -95,7 +95,7 @@ public class VoteController {
 
     @DeleteMapping("/api/votes")
     @ResponseBody
-    public ResponseEntity<Void> clearVotes() {
+    ResponseEntity<Void> clearVotes() {
         voteRepository.deleteAll();
         return ResponseEntity.noContent().build();
     }
