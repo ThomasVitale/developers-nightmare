@@ -1,3 +1,5 @@
+import org.cyclonedx.gradle.CyclonedxDirectTask
+
 plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.2'
@@ -86,4 +88,8 @@ tasks.named('bootBuildImage') {
     environment = [
         "BP_NATIVE_IMAGE_BUILD_ARGUMENTS": "--enable-monitoring=jfr"
     ]
+}
+
+tasks.withType(CyclonedxDirectTask).configureEach {
+    includeConfigs = ['productionRuntimeClasspath']
 }
