@@ -5,6 +5,7 @@
   packages = [
     pkgs.cosign
     pkgs.go-task
+    pkgs.grype
     pkgs.httpie
     pkgs.jq
     pkgs.skopeo
