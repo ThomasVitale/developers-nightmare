@@ -74,7 +74,7 @@ tasks.named('test') {
 }
 
 tasks.named('bootBuildImage') {
-    builder = "paketobuildpacks/ubuntu-resolute-builder"
+    builder = "docker.io/paketobuildpacks/ubuntu-resolute-builder"
     runImage = "docker.io/paketobuildpacks/ubuntu-resolute-run-tiny"
 }
 
