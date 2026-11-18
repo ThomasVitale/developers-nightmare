@@ -11,7 +11,7 @@ record Vote(
     String answers,
     Instant createdAt
 ) {
-    public Vote(String answers) {
-        this(null, answers, Instant.now());
+    static Vote of(String answers) {
+        return new Vote(null, answers, Instant.now());
     }
 }

@@ -66,7 +66,7 @@ class VoteController {
                 .map(String::valueOf)
                 .collect(Collectors.joining(","));
         if (!answersStr.isEmpty()) {
-            voteRepository.save(new Vote(answersStr));
+            voteRepository.save(Vote.of(answersStr));
             logger.info("Vote recorded: answers={}", answersStr);
         } else {
             logger.warn("Vote rejected: invalid answers={}", answers);
