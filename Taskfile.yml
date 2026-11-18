@@ -46,3 +46,17 @@ tasks:
     cmds:
       - echo "Signing image{{":"}} {{.REGISTRY}}/{{.IMAGE}}@{{.IMAGE_DIGEST}}"
       - cosign sign --yes {{.REGISTRY}}/{{.IMAGE}}@{{.IMAGE_DIGEST}}
+
+  image:sbom:
+    desc: Generate a CycloneDX SBOM for the published OCI image with Syft
+    vars:
+      PLATFORM: '{{.PLATFORM | default "linux/amd64"}}'
+      IMAGE_DIGEST:
+        sh: skopeo inspect docker://{{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}} | jq -r '.Digest'
+    cmds:
+      - mkdir -p build/reports/syft
+      - syft scan registry:{{.REGISTRY}}/{{.IMAGE}}@{{.IMAGE_DIGEST}}
+          --platform {{.PLATFORM}}
+          --source-name {{.REGISTRY}}/{{.IMAGE}}
+          --source-version {{.VERSION}}
+          -o cyclonedx-json=build/reports/syft/image.cdx.json

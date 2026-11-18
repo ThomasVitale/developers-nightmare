@@ -9,6 +9,7 @@
     pkgs.jq
     pkgs.skopeo
     pkgs.slsa-verifier
+    pkgs.syft
   ];
 
   # https://devenv.sh/languages/

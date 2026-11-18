@@ -27,6 +27,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE: thomasvitale/developers-nightmare
   VERSION: ${{ github.sha }}
+  DEPENDENCY_TRACK_PARENT: Developers Nightmare
 
 permissions:
   contents: read
@@ -86,6 +87,7 @@ jobs:
             -F "projectName=${PROJECT_NAME}" \
             -F "projectVersion=${PROJECT_VERSION}" \
             -F "projectTags=java,spring-boot" \
+            -F "parentName=${DEPENDENCY_TRACK_PARENT}" \
             -F "autoCreate=true" \
             -F "bom=@build/reports/cyclonedx/application.cdx.json"
 
@@ -232,3 +234,23 @@ jobs:
           subject-digest: ${{ env.IMAGE_DIGEST }}
           push-to-registry: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate OCI image SBOM
+        shell: devenv shell bash -- -e {0}
+        run: task image:sbom VERSION="${VERSION}"
+
+      - name: Publish OCI image SBOM
+        env:
+          DEPENDENCY_TRACK_HOSTNAME: ${{ secrets.DEPENDENCY_TRACK_HOSTNAME }}
+          DEPENDENCY_TRACK_API_KEY: ${{ secrets.DEPENDENCY_TRACK_API_KEY }}
+          PROJECT_NAME: ${{ github.event.repository.name }}-image
+        run: |
+          set -euo pipefail
+          curl -sS --fail-with-body -X POST "https://${DEPENDENCY_TRACK_HOSTNAME}/api/v1/bom" \
+            -H "X-Api-Key: ${DEPENDENCY_TRACK_API_KEY}" \
+            -F "projectName=${PROJECT_NAME}" \
+            -F "projectVersion=main" \
+            -F "projectTags=oci,buildpacks" \
+            -F "parentName=${DEPENDENCY_TRACK_PARENT}" \
+            -F "autoCreate=true" \
+            -F "bom=@build/reports/syft/image.cdx.json"
