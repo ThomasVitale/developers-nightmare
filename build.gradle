@@ -77,6 +77,15 @@ tasks.named('test') {
 tasks.named('bootBuildImage') {
     builder = "docker.io/paketobuildpacks/ubuntu-resolute-builder"
     runImage = "docker.io/paketobuildpacks/ubuntu-resolute-run-tiny"
+    environment.put("BP_NATIVE_IMAGE_BUILD_ARGUMENTS", graalvmNative.binaries.main.buildArgs.map { it.join(" ") })
+}
+
+graalvmNative {
+    binaries {
+        main {
+            buildArgs.add("--enable-monitoring=jfr")
+        }
+    }
 }
 
 tasks.withType(BaseCyclonedxTask).configureEach {
