@@ -1,5 +1,5 @@
 import org.cyclonedx.Version
-import org.cyclonedx.gradle.CyclonedxAggregateTask
+import org.cyclonedx.gradle.BaseCyclonedxTask
 import org.cyclonedx.gradle.CyclonedxDirectTask
 
 plugins {
@@ -79,10 +79,7 @@ tasks.named('bootBuildImage') {
     runImage = "docker.io/paketobuildpacks/ubuntu-resolute-run-tiny"
 }
 
-tasks.withType(CyclonedxAggregateTask).configureEach {
+tasks.withType(BaseCyclonedxTask).configureEach {
     schemaVersion = Version.VERSION_17
-}
 
-tasks.withType(CyclonedxDirectTask).configureEach {
-    schemaVersion = Version.VERSION_17
 }
