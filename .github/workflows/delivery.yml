@@ -55,7 +55,7 @@ jobs:
           set -euo pipefail
           jq -n \
             --arg app_target "${TARGET}" \
-            --arg app_image "${REGISTRY}/${OWNER}/${APP_REPO}" \
+            --arg app_image "${REGISTRY}/${OWNER,,}/${APP_REPO}" \
             --arg app_name "${APP_REPO}" \
             --arg app_version "${VERSION}" \
             '{event_type: "app-delivery", client_payload: {app_target: $app_target, app_image: $app_image, app_name: $app_name, app_version: $app_version}}' \
