@@ -28,18 +28,21 @@ jobs:
     needs: [check]
     name: Functional Acceptance Tests
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
       - run: echo "Running functional acceptance tests"
   performance:
     needs: [check]
     name: Performance Tests
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
       - run: echo "Running performance tests"
   security:
     needs: [check]
     name: Security Tests
     runs-on: ubuntu-26.04
+    timeout-minutes: 30
     steps:
       - run: echo "Running security tests"
   deliver:
@@ -48,7 +51,7 @@ jobs:
     uses: ./.github/workflows/delivery.yml
     with:
       target: 'cloud'
-      owner: 'thomasvitale'
+      owner: ${{ github.repository_owner }}
       deploy_repo: 'kubecon-eu-2026-gitops'
       registry: 'ghcr.io'
       app_repo: developers-nightmare

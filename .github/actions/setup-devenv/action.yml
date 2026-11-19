@@ -1,0 +1,34 @@
+name: Set up devenv
+description: Install Nix and devenv, restore the Nix store cache, and export the devenv Java toolchain
+
+inputs:
+  save-cache:
+    description: 'Whether to save the Nix store cache at the end of the job'
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - name: Install Nix
+      uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+
+    - name: Restore Nix store cache
+      uses: nix-community/cache-nix-action@7df957e333c1e5da7721f60227dbba6d06080569 # v7.0.2
+      with:
+        primary-key: nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('devenv.lock', 'devenv.nix', 'devenv.yaml') }}
+        restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
+        gc-max-store-size-linux: 5G
+        save: ${{ inputs.save-cache }}
+
+    - name: Install devenv
+      shell: bash
+      run: nix profile add nixpkgs#devenv
+
+    - name: Build devenv shell
+      shell: bash
+      run: devenv test
+
+    - name: Export devenv toolchain
+      shell: bash
+      run: devenv shell bash -- -euo pipefail -c 'echo "JAVA_HOME=$JAVA_HOME" >> "$GITHUB_ENV"; echo "$JAVA_HOME/bin" >> "$GITHUB_PATH"'

@@ -16,47 +16,68 @@ tasks:
   build:
     desc: Compile and test the application
     cmds:
-      - ./gradlew build --no-daemon
+      - ./gradlew build
 
-  image:build:amd64:
-    desc: Build and publish the AMD64 OCI image
+  test:
+    desc: Run the tests
     cmds:
-      - ./gradlew bootBuildImage --imageName {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-amd64 --imagePlatform linux/amd64
-      - docker push {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-amd64
+      - ./gradlew test
 
-  image:build:arm64:
-    desc: Build and publish the ARM64 OCI image
+  run:
+    desc: Run the application locally
     cmds:
-      - ./gradlew bootBuildImage --imageName {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-arm64 --imagePlatform linux/arm64
-      - docker push {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-arm64
+      - ./gradlew bootRun
+
+  clean:
+    desc: Delete the build outputs
+    cmds:
+      - ./gradlew clean
+
+  image:build:arch:
+    desc: Build and publish the OCI image for a single architecture (ARCH=amd64|arm64)
+    requires:
+      vars:
+        - name: ARCH
+          enum: [amd64, arm64]
+    cmds:
+      - ./gradlew bootBuildImage --imageName {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-{{.ARCH}} --imagePlatform linux/{{.ARCH}}
+      - docker push {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-{{.ARCH}}
 
   image:build:
     desc: Build and publish the multi-arch OCI image (requires amd64 and arm64 images to be published first)
     cmds:
-      - docker manifest create {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}
-          --amend {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-amd64
-          --amend {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-arm64
-      - docker manifest push {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}
+      - docker buildx imagetools create
+          --tag {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}
+          {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-amd64
+          {{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}-arm64
+
+  image:digest:
+    desc: Print the digest of the published OCI image (multi-arch index, or a single architecture with ARCH=amd64|arm64)
+    silent: true
+    cmds:
+      - skopeo inspect docker://{{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}}{{if .ARCH}}-{{.ARCH}}{{end}} | jq -r '.Digest'
 
   image:sign:
     desc: Sign the OCI image with Cosign
     vars:
       IMAGE_DIGEST:
-        sh: skopeo inspect docker://{{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}} | jq -r '.Digest'
+        sh: '{{.TASK_EXE}} image:digest VERSION={{.VERSION}}'
     cmds:
       - echo "Signing image{{":"}} {{.REGISTRY}}/{{.IMAGE}}@{{.IMAGE_DIGEST}}"
       - cosign sign --yes {{.REGISTRY}}/{{.IMAGE}}@{{.IMAGE_DIGEST}}
 
   image:sbom:
-    desc: Generate a CycloneDX SBOM for the published OCI image with Syft
+    desc: Generate a CycloneDX SBOM with Syft for the published OCI image of a single architecture (ARCH=amd64|arm64)
+    requires:
+      vars:
+        - name: ARCH
+          enum: [amd64, arm64]
     vars:
-      PLATFORM: '{{.PLATFORM | default "linux/amd64"}}'
       IMAGE_DIGEST:
-        sh: skopeo inspect docker://{{.REGISTRY}}/{{.IMAGE}}:{{.VERSION}} | jq -r '.Digest'
+        sh: '{{.TASK_EXE}} image:digest ARCH={{.ARCH}} VERSION={{.VERSION}}'
     cmds:
       - mkdir -p build/reports/syft
       - syft scan registry:{{.REGISTRY}}/{{.IMAGE}}@{{.IMAGE_DIGEST}}
-          --platform {{.PLATFORM}}
           --source-name {{.REGISTRY}}/{{.IMAGE}}
           --source-version {{.VERSION}}
-          -o cyclonedx-json=build/reports/syft/image.cdx.json
+          -o cyclonedx-json=build/reports/syft/image-{{.ARCH}}.cdx.json
