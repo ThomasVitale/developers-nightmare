@@ -15,7 +15,7 @@ Several checklists, paperwork, and meetings later, you’re finally approved for
 
 In this session, Alexandra and Thomas explore how to break the compliance barriers for developers, even in highly regulated industries. The goal is to enhance the developer experience while letting the platform automate and enforce compliance and security checks.
 
-You'll follow the mishaps of a developer and learn how to deal with compliance, using practical solutions based on OSS tools like Backstage, Dependency-Track, Sigstore, and Buildpacks.
+You'll follow the mishaps of a developer and learn how to deal with compliance, using practical solutions based on OSS tools like Renovate, Dependency-Track, Sigstore, Kyverno, and Buildpacks.
 
 ## The Demo Application
 
